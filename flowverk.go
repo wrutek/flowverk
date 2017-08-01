@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/nsf/termbox-go"
 	"gopkg.in/yaml.v2"
 )
 
@@ -66,6 +67,12 @@ func main() {
 	}
 	yaml.Unmarshal(confFile, &config)
 
+	/* initialise read input tool */
+	err = termbox.Init()
+	if err != nil {
+		panic(err)
+	}
+
 	/* Build jira query */
 	jql := fmt.Sprintf("status=\"To Do\" AND project=\"%s\"", config.ProjectName)
 
@@ -96,7 +103,7 @@ func main() {
 
 	/* Draw all issues */
 	var assignee map[string]interface{}
-	// screenSize := len(jResp.Issues)
+	screenSize := len(jResp.Issues)
 	pointerIndex := 0
 	for {
 		for index, issue := range jResp.Issues {
@@ -111,5 +118,23 @@ func main() {
 			}
 			fmt.Printf("[%s] %s %s <%s>\n", pointer, issue.Key, issue.Fields.Summary, assignee["displayName"])
 		}
+
+		fmt.Println("-------------")
+		fmt.Println(pointerIndex, screenSize)
+		fmt.Println("-------------")
+		action := termbox.PollEvent()
+		if (action.Key == termbox.KeyArrowDown) && (pointerIndex <= screenSize) {
+			pointerIndex++
+		}
+		if action.Key == termbox.KeyArrowUp && (0 <= pointerIndex) {
+			pointerIndex--
+		}
+
+		if action.Key == termbox.KeyEnter {
+			break
+		}
 	}
+
+	/* close termbox */
+	defer termbox.Close()
 }
