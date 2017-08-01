@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/nsf/termbox-go"
 	"gopkg.in/yaml.v2"
@@ -104,10 +105,15 @@ func main() {
 	/* Draw all issues */
 	var assignee map[string]interface{}
 	screenSize := len(jResp.Issues)
+	termWidth, _ := termbox.Size()
 	pointerIndex := 0
+
 	for {
+		var pointer string
+		var pointedIssue Issue
+
+		/* draw a screen */
 		for index, issue := range jResp.Issues {
-			pointer := " "
 			assignee = map[string]interface{}{"displayName": "nil"}
 			if issue.Fields.Assignee != nil {
 				assignee = issue.Fields.Assignee.(map[string]interface{})
@@ -115,26 +121,44 @@ func main() {
 
 			if pointerIndex == index {
 				pointer = "*"
+				pointedIssue = issue
+			} else {
+				pointer = " "
 			}
 			fmt.Printf("[%s] %s %s <%s>\n", pointer, issue.Key, issue.Fields.Summary, assignee["displayName"])
 		}
 
-		fmt.Println("-------------")
-		fmt.Println(pointerIndex, screenSize)
-		fmt.Println("-------------")
+		fmt.Printf("\n\n%s\n", strings.Repeat("-", termWidth))
+		fmt.Printf("press Enter to assign: %s to yourself and put this ticket to InProgress\n", pointedIssue.Key)
+		fmt.Println("q/ESC - exit")
+		fmt.Println("Enter - select issue")
+		fmt.Printf("%s\n", strings.Repeat("-", termWidth))
+		termbox.HideCursor()
+		termbox.Flush()
+
+		/* wait for action key */
 		action := termbox.PollEvent()
-		if (action.Key == termbox.KeyArrowDown) && (pointerIndex <= screenSize) {
+		if (action.Key == termbox.KeyArrowDown) && (pointerIndex < screenSize-1) {
 			pointerIndex++
 		}
-		if action.Key == termbox.KeyArrowUp && (0 <= pointerIndex) {
+		if action.Key == termbox.KeyArrowUp && (0 < pointerIndex) {
 			pointerIndex--
 		}
 
 		if action.Key == termbox.KeyEnter {
 			break
 		}
+
+		if action.Key == termbox.KeyEsc || action.Ch == 'q' {
+			break
+		}
+
+		termbox.SetCursor(0, 0)
+		termbox.Flush()
 	}
 
 	/* close termbox */
+	termbox.SetCursor(0, screenSize+1)
+	termbox.Flush()
 	defer termbox.Close()
 }
