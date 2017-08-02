@@ -15,7 +15,7 @@ import (
 // SECTION: constants {{{
 var fields = []string{"id", "summary", "assignee"}
 
-const confFileName = ".flowverk.conf"
+const confFileName = ".flowverk.yaml"
 
 //}}}
 
@@ -56,6 +56,12 @@ type Config struct {
 	ProjectName string `yaml:"projectName"`
 	User        string
 	Pass        string
+	Transitions struct {
+		Todo       string
+		InProgress string `yaml:"inprogress"`
+		InReview   string `yaml:"inreview"`
+		Done       string
+	}
 }
 
 func main() {
@@ -73,6 +79,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println(config)
 
 	/* Build jira query */
 	jql := fmt.Sprintf("status=\"To Do\" AND project=\"%s\"", config.ProjectName)
@@ -158,7 +165,11 @@ func main() {
 	}
 
 	/* close termbox */
-	termbox.SetCursor(0, screenSize+1)
+	termbox.SetCursor(0, screenSize+7)
 	termbox.Flush()
 	defer termbox.Close()
+}
+
+func assignTicket(issue Issue) {
+
 }

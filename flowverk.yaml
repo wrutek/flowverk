@@ -1,0 +1,12 @@
+jiraURL:
+projectName:
+user:
+pass:
+
+transitions:
+  # you can see what kind of transition you have available by fetching
+  # GET http://{jira_rest}/issue/{issue_id}/transitions
+  todo: 11
+  inprogress: 21
+  inreview: 31
+  done: 41
