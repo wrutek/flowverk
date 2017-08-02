@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flowverk/config"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -50,24 +51,10 @@ type jiraResp struct {
 	Issues     []Issue `json:"issues"`
 }
 
-//Config struct
-type Config struct {
-	JiraURL     string `yaml:"jiraURL"`
-	ProjectName string `yaml:"projectName"`
-	User        string
-	Pass        string
-	Transitions struct {
-		Todo       string
-		InProgress string `yaml:"inprogress"`
-		InReview   string `yaml:"inreview"`
-		Done       string
-	}
-}
-
 func main() {
 
 	/* Read configuration */
-	var config Config
+	config.
 	confFile, err := ioutil.ReadFile(confFileName)
 	if err != nil {
 		panic(err)
@@ -79,7 +66,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(config)
 
 	/* Build jira query */
 	jql := fmt.Sprintf("status=\"To Do\" AND project=\"%s\"", config.ProjectName)
