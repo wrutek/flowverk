@@ -3,14 +3,13 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"flowverk/config"
+	"flowverk/configuration"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
 
 	"github.com/nsf/termbox-go"
-	"gopkg.in/yaml.v2"
 )
 
 // SECTION: constants {{{
@@ -25,10 +24,6 @@ type query struct {
 	Fields []string `json:"fields"`
 }
 
-// type jUser struct {
-// 	Name        string `json:"name"`
-// 	DisplayName string `jsong:"displayName"`
-// }
 type issueFields struct {
 	Summary  string      `json:"summary"`
 	Assignee interface{} `json:"assignee"`
@@ -54,15 +49,10 @@ type jiraResp struct {
 func main() {
 
 	/* Read configuration */
-	config.
-	confFile, err := ioutil.ReadFile(confFileName)
-	if err != nil {
-		panic(err)
-	}
-	yaml.Unmarshal(confFile, &config)
+	config := configuration.GetConfig()
 
 	/* initialise read input tool */
-	err = termbox.Init()
+	err := termbox.Init()
 	if err != nil {
 		panic(err)
 	}

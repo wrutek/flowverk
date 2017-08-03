@@ -1,4 +1,4 @@
-package config
+package configuration
 
 import (
 	"io/ioutil"
@@ -30,7 +30,7 @@ func GetConfig() *Config {
 	if err != nil {
 		panic(err)
 	}
-	yaml.Unmarshal(confFile, &config)
+	yaml.Unmarshal(confFile, config)
 
 	return config
 }
