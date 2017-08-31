@@ -38,6 +38,7 @@ func main() {
 
 	/* Draw all issues */
 	var assignee map[string]interface{}
+	var parent map[string]interface{}
 	screenSize := len(issues)
 	termWidth, _ := termbox.Size()
 	pointerIndex := 0
@@ -53,13 +54,19 @@ func main() {
 				assignee = issue.Fields.Assignee.(map[string]interface{})
 			}
 
+			parentInfo := ""
+			if issue.Fields.Parent != nil {
+				parent = issue.Fields.Parent.(map[string]interface{})
+				parentInfo = fmt.Sprintf("<%s> %s --> ", parent["key"], parent["fields"].(map[string]interface{})["summary"])
+			}
+
 			if pointerIndex == index {
 				pointer = "*"
 				pointedIssue = issue
 			} else {
 				pointer = " "
 			}
-			fmt.Printf("[%s] %s %s <%s>\n", pointer, issue.Key, issue.Fields.Summary, assignee["displayName"])
+			fmt.Printf("[%s] %s<%s> %s <%s>\n", pointer, parentInfo, issue.Key, issue.Fields.Summary, assignee["displayName"])
 		}
 
 		fmt.Printf("\n\n%s\n", strings.Repeat("-", termWidth))

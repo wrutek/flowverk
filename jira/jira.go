@@ -11,16 +11,16 @@ import (
 )
 
 // Constants
-var fields = []string{"id", "summary", "assignee"}
+var fields = []string{"id", "summary", "assignee", "parent"}
 
 type issueFields struct {
 	Summary  string      `json:"summary"`
 	Assignee interface{} `json:"assignee"`
+	Parent   interface{} `json:"parent"`
 }
 
 type jiraResp struct {
 	Expand     string  `json:"expand"`
-	StartAt    int     `json:"startAt"`
 	MaxResults int     `json:"maxResults"`
 	Total      int     `json:"total"`
 	Issues     []Issue `json:"issues"`
@@ -102,7 +102,8 @@ func (jira *Jira) GetIssues(status string) ([]Issue, error) {
 		return nil, err
 	}
 
-	jql := fmt.Sprintf("status=\"%s\" AND project=\"%s\" AND Sprint=%d",
+	jql := fmt.Sprintf("status=\"%s\" AND project=\"%s\" AND Sprint=%d "+
+		"AND issuetype in (Bug, Sub-task)",
 		status, jira.Project, sprint)
 
 	question := query{Jql: jql, Fields: fields}
