@@ -1,7 +1,10 @@
 jiraURL:
+issuesURI: 
+boardURI:
 projectName:
 user:
 pass:
+board: 84
 
 transitions:
   # you can see what kind of transition you have available by fetching
@@ -9,4 +12,4 @@ transitions:
   todo: 11
   inprogress: 21
   inreview: 31
-  done: 41
+  done: 31
