@@ -14,6 +14,9 @@ type Config struct {
 	ProjectName string `yaml:"projectName"`
 	User        string
 	Pass        string
+	Board       int
+	IssuesURI   string `yaml:"issuesURI"`
+	BoardURI    string `yaml:"boardURI"`
 	Transitions struct {
 		Todo       string
 		InProgress string `yaml:"inprogress"`

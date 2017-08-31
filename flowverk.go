@@ -1,50 +1,20 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
 	"flowverk/configuration"
+	"flowverk/jira"
 	"fmt"
-	"io/ioutil"
-	"net/http"
+	"os"
 	"strings"
 
 	"github.com/nsf/termbox-go"
 )
 
 // SECTION: constants {{{
-var fields = []string{"id", "summary", "assignee"}
 
 const confFileName = ".flowverk.yaml"
 
 //}}}
-
-type query struct {
-	Jql    string   `json:"jql"`
-	Fields []string `json:"fields"`
-}
-
-type issueFields struct {
-	Summary  string      `json:"summary"`
-	Assignee interface{} `json:"assignee"`
-}
-
-// Issue structure represents narrowed issue from jira response */
-type Issue struct {
-	Expand string      `json:"-"`
-	ID     string      `json:"id"`
-	Self   string      `json:"self"`
-	Key    string      `json:"key"`
-	Fields issueFields `json:"fields"`
-}
-
-type jiraResp struct {
-	Expand     string  `json:"expand"`
-	StartAt    int     `json:"startAt"`
-	MaxResults int     `json:"maxResults"`
-	Total      int     `json:"total"`
-	Issues     []Issue `json:"issues"`
-}
 
 func main() {
 
@@ -57,46 +27,27 @@ func main() {
 		panic(err)
 	}
 
-	/* Build jira query */
-	jql := fmt.Sprintf("status=\"To Do\" AND project=\"%s\"", config.ProjectName)
-
-	question := query{Jql: jql, Fields: fields}
-	body := new(bytes.Buffer)
-	json.NewEncoder(body).Encode(question)
-
-	connector := &http.Client{}
-
-	/* build request to jira */
-	req, err := http.NewRequest("POST", config.JiraURL+"search", body)
+	connector := jira.NewConnection(config)
+	issues, err := connector.GetIssues("To Do")
 	if err != nil {
+		closeTermbox(0)
+
 		fmt.Println(err)
+		os.Exit(1)
 	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.SetBasicAuth(config.User, config.Pass)
-
-	/* fetch response from jira */
-	resp, err := connector.Do(req)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	var jResp jiraResp
-	rBody, _ := ioutil.ReadAll(resp.Body)
-	json.Unmarshal(rBody, &jResp)
 
 	/* Draw all issues */
 	var assignee map[string]interface{}
-	screenSize := len(jResp.Issues)
+	screenSize := len(issues)
 	termWidth, _ := termbox.Size()
 	pointerIndex := 0
 
 	for {
 		var pointer string
-		var pointedIssue Issue
+		var pointedIssue jira.Issue
 
 		/* draw a screen */
-		for index, issue := range jResp.Issues {
+		for index, issue := range issues {
 			assignee = map[string]interface{}{"displayName": "nil"}
 			if issue.Fields.Assignee != nil {
 				assignee = issue.Fields.Assignee.(map[string]interface{})
@@ -140,12 +91,17 @@ func main() {
 		termbox.Flush()
 	}
 
+	closeTermbox(screenSize)
+}
+
+func closeTermbox(screenSize int) {
 	/* close termbox */
 	termbox.SetCursor(0, screenSize+7)
-	termbox.Flush()
 	defer termbox.Close()
+	termbox.Flush()
 }
 
-func assignTicket(issue Issue) {
-
-}
+//
+// func assignTicket(issue Issue) {
+//
+// }
